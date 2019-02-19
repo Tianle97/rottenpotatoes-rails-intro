@@ -9,9 +9,15 @@ class MoviesController < ApplicationController
     @movie = Movie.find(id) # look up movie by unique ID
     # will render app/views/movies/show.<extension> by default
   end
+  
+  # For CSS files...
+  def styletag(default)
+    "<link rel='stylesheet' href='/styles/#{:default}.css'>"
+  end
 
   def index
-    @movies = Movie.all
+    @sort = params[:sort]
+    @movies = Movie.all.order(@sort)
   end
 
   def new
