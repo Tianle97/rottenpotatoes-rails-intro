@@ -12,10 +12,26 @@ class MoviesController < ApplicationController
 
   def index
     @all_ratings = Movie.order(:rating).select(:rating).map(&:rating).uniq
+    @checked_ratings = check
+    @checked_ratings.each do |rating|
+      params[rating] = true
+    end
     
-    @sort = params[:sort]
-    @movies = Movie.all.order(@sort)
+    @sort = params[:sort] || session[:sort]
+    session[:ratings] = session[:ratings] || {'G'=>'','PG'=>'','PG-13'=>'','R'=>''}
+    @t_param = params[:ratings] || session[:ratings]
+    session[:sort] = @sort
+    session[:ratings] = @t_param 
+    @movies = Movie.where(rating: session[:ratings].keys).order(session[:sort])
+
+   if params[:sort]
+      @movies = Movie.order(params[:sort])
+    else
+      @movies = Movie.where(:rating => @checked_ratings)
+    end
   end
+    #@movies = Movie.all.order(@sort)
+  #end
 
   def new
     # default: render 'new' template
@@ -43,6 +59,16 @@ class MoviesController < ApplicationController
     @movie.destroy
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
+  end
+  
+  private
+  
+  def check
+    if params[:ratings]
+      params[:ratings].keys
+    else
+      @all_ratings
+    end
   end
 
 end
