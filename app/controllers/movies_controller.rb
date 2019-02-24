@@ -11,28 +11,15 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @all_ratings = Movie.order(:rating).select(:rating).map(&:rating).uniq
-    @checked_ratings = check
-    @checked_ratings.each do |rating|
-      params[rating] = true
-    end
-    
-    @sort = params[:sort] || session[:sort]
-    session[:ratings] = session[:ratings] || {'G'=>'','PG'=>'','PG-13'=>'','R'=>''}
-    @t_param = params[:ratings] || session[:ratings]
-    session[:sort] = @sort
-    session[:ratings] = @t_param 
-    @movies = Movie.where(rating: session[:ratings].keys).order(session[:sort])
-
-   if params[:sort]
-      @movies = Movie.order(params[:sort])
-    else
-      @movies = Movie.where(:rating => @checked_ratings)
-    end
-    
-    if(params[:sort].nil? and !(session[:sort].nil?)) or (params[:ratings].nil? and !(session[:rating].nil?))
-     flash.keep
-     redirect_to movies_path(sort: session[:sort], ratings: session[:ratings])
+    @sort = params[:sort]||session[:sort]
+    @all_ratings = Movie.all_ratings#
+    @ratings =  params[:ratings] || session[:ratings] || Hash[@all_ratings.map {|rating| [rating, rating]}]
+    @movies = Movie.where(rating:@ratings.keys).order(@sort)
+    if params[:sort]!=session[:sort] or params[:ratings]!=session[:ratings]
+      session[:sort] = @sort
+      session[:ratings] = @ratings
+      flash.keep
+      redirect_to movies_path(sort: session[:sort],ratings:session[:ratings])
     end
   end
     #@movies = Movie.all.order(@sort)
